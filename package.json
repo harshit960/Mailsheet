@@ -1,0 +1,38 @@
+{
+  "name": "mailsheet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A spreadsheet for recruiter outreach. Personalise one template per recipient and push each row to a Gmail draft — entirely in your browser.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshit960/mailsheet.git"
+  },
+  "homepage": "https://github.com/harshit960/mailsheet",
+  "bugs": {
+    "url": "https://github.com/harshit960/mailsheet/issues"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-data-grid": "^7.0.0-beta.61",
+    "react-dom": "19.2.8",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

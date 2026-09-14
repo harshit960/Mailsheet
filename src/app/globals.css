@@ -1,0 +1,315 @@
+@import "tailwindcss";
+@import "react-data-grid/lib/styles.css";
+
+@theme {
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+}
+
+:root {
+  color-scheme: light dark;
+
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --sunken: #fafafa;
+  --ink: #111113;
+  --ink-2: #5c5f66;
+  --ink-3: #8b8f97;
+  --line: #e6e7e9;
+  --line-2: #d4d6da;
+  --accent: #2564cf;
+  --danger: #c0392f;
+  --ok: #157f4a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0d0d0f;
+    --surface: #151517;
+    --sunken: #111113;
+    --ink: #ededef;
+    --ink-2: #a0a3aa;
+    --ink-3: #70737a;
+    --line: #26262a;
+    --line-2: #34343a;
+    --accent: #6c9ceb;
+    --danger: #e8756a;
+    --ok: #52b788;
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+/* ---- form + button primitives ------------------------------------------ */
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--color-line-2);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 80ms ease, border-color 80ms ease, opacity 80ms ease;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--color-sunken);
+    border-color: var(--color-ink-3);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-canvas);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-ink) 85%, var(--color-canvas));
+    border-color: color-mix(in srgb, var(--color-ink) 85%, var(--color-canvas));
+  }
+  /* A dimmed solid button still reads as the loudest thing on screen, so a
+     disabled primary drops back to an outline instead. */
+  .btn-primary:disabled {
+    background: transparent;
+    border-color: var(--color-line-2);
+    color: var(--color-ink-3);
+    opacity: 1;
+  }
+  .btn-ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-ink-2);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-sunken);
+    border-color: var(--color-line);
+    color: var(--color-ink);
+  }
+  .btn-sm {
+    height: 24px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .field {
+    width: 100%;
+    padding: 6px 9px;
+    border: 1px solid var(--color-line-2);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: 13px;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+  .field::placeholder {
+    color: var(--color-ink-3);
+  }
+  .field:focus {
+    outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+    outline-offset: -1px;
+    border-color: var(--color-accent);
+  }
+  textarea.field {
+    resize: vertical;
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--color-ink-2);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .hint {
+    margin-top: 5px;
+    color: var(--color-ink-3);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+}
+
+/* ---- data grid theme ---------------------------------------------------- */
+
+.rdg {
+  --rdg-color: var(--color-ink);
+  --rdg-background-color: var(--color-surface);
+  --rdg-header-background-color: var(--color-sunken);
+  --rdg-header-draggable-background-color: var(--color-line);
+  --rdg-row-hover-background-color: color-mix(in srgb, var(--color-ink) 3%, var(--color-surface));
+  --rdg-row-selected-background-color: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+  --rdg-row-selected-hover-background-color: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  --rdg-border-color: var(--color-line);
+  --rdg-summary-border-color: var(--color-line-2);
+  --rdg-selection-color: var(--color-accent);
+  --rdg-selection-width: 1px;
+  --rdg-font-size: 13px;
+  block-size: 100%;
+  border: none;
+  border-block-start: 1px solid var(--color-line);
+}
+
+.rdg-header-row .rdg-cell {
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-2);
+  text-transform: uppercase;
+}
+
+.rdg-cell {
+  padding-inline: 10px;
+  border-inline-end: 1px solid var(--color-line);
+  display: flex;
+  align-items: center;
+}
+
+.rdg-cell[aria-selected="true"] {
+  outline-offset: -1px;
+}
+
+.rdg-row.row-active {
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface));
+}
+
+.cell-input {
+  inline-size: 100%;
+  block-size: 100%;
+  padding-inline: 10px;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 13px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* ---- modal -------------------------------------------------------------- */
+
+dialog.sheet {
+  padding: 0;
+  border: none;
+  max-inline-size: none;
+  max-block-size: none;
+  background: transparent;
+  color: inherit;
+  overflow: visible;
+}
+
+dialog.sheet::backdrop {
+  background: rgb(0 0 0 / 0.38);
+  backdrop-filter: blur(1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  dialog.sheet::backdrop {
+    background: rgb(0 0 0 / 0.6);
+  }
+}
+
+.sheet-panel {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(92vw, var(--sheet-width, 560px));
+  max-block-size: min(88vh, 860px);
+  border: 1px solid var(--color-line-2);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 12px 40px rgb(0 0 0 / 0.16);
+}
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--color-line-2);
+  border-radius: 7px;
+  background: var(--color-sunken);
+}
+.seg > button {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-ink-2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.seg > button[aria-pressed="true"] {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--color-line-2);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink-2);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--color-ink-3);
+  color: var(--color-ink);
+}
+
+.dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 999px;
+  flex: none;
+}
