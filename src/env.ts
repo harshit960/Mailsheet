@@ -13,4 +13,4 @@ export const env = {
 } as const;
 
 /** Where this app's source lives. Linked from the header. */
-export const REPO_URL = "https://github.com/harshit960/mailsheet";
+export const REPO_URL = "https://github.com/harshit960/Mailsheet";

@@ -6,11 +6,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/harshit960/mailsheet.git"
+    "url": "git+https://github.com/harshit960/Mailsheet.git"
   },
-  "homepage": "https://github.com/harshit960/mailsheet",
+  "homepage": "https://github.com/harshit960/Mailsheet",
   "bugs": {
-    "url": "https://github.com/harshit960/mailsheet/issues"
+    "url": "https://github.com/harshit960/Mailsheet/issues"
   },
   "scripts": {
     "dev": "next dev",

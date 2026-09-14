@@ -35,7 +35,7 @@ placeholder values, so the app is usable offline; it just is not personalised.
 ## Quick start
 
 ```bash
-git clone https://github.com/harshit960/mailsheet.git
+git clone https://github.com/harshit960/Mailsheet.git
 cd mailsheet
 npm install
 npm run dev          # http://localhost:3000
