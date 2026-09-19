@@ -26,7 +26,10 @@ export function Inspector({
   draftsHref,
 }: InspectorProps) {
   const [copied, setCopied] = useState(false);
-  const busy = lead.status === "generating" || lead.status === "queued";
+  const busy =
+    lead.status === "generating" ||
+    lead.status === "queued" ||
+    lead.status === "waiting";
 
   useEffect(() => {
     if (!copied) return;

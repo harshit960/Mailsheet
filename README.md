@@ -32,6 +32,12 @@ neither the key nor the emails pass through the server that served the page.
 Without an API key the Write action still fills your template from the
 placeholder values, so the app is usable offline; it just is not personalised.
 
+**On rate limits**, a row waits and tries again rather than failing: up to
+three retries, five minutes apart, with the remaining time shown in the Status
+column. Only transient failures qualify — a 429, a timeout, or a 5xx from the
+vendor. A rejected API key or a malformed request fails immediately, because no
+amount of waiting fixes those. Stop abandons the wait at once.
+
 ## Quick start
 
 ```bash

@@ -2,6 +2,8 @@ export type LeadStatus =
   | "new"
   | "queued"
   | "generating"
+  /** Rate-limited or the vendor faltered; sitting out a wait before retrying. */
+  | "waiting"
   | "ready"
   | "error"
   | "drafted";
@@ -24,6 +26,10 @@ export interface Lead {
   body: string;
   status: LeadStatus;
   error?: string;
+  /** While `waiting`: when the next attempt fires, and which retry it is. */
+  retryAt?: number;
+  retryAttempt?: number;
+  retryOf?: number;
   /** Fields the user typed themselves, so we never overwrite them on re-derive. */
   edited: Partial<Record<"name" | "company", true>>;
   nameConfidence: Confidence;
