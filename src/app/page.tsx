@@ -74,6 +74,19 @@ export default function Page() {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
+  /** Escape closes the open record, the way every other panel here does. */
+  useEffect(() => {
+    if (!activeId) return;
+    const onKey = (event: KeyboardEvent) => {
+      // Dialogs handle their own Escape; do not close both at once.
+      if (event.key === "Escape" && !document.querySelector("dialog[open]")) {
+        setActiveId(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeId]);
+
   /** A stale token should not look connected. */
   useEffect(() => {
     if (session && isExpired(session)) setSession(null);
@@ -100,7 +113,13 @@ export default function Page() {
 
   const writeOne = useCallback(
     async (lead: Lead, signal: AbortSignal) => {
-      updateLead(lead.id, { status: "generating", error: undefined });
+      updateLead(lead.id, {
+        status: "generating",
+        error: undefined,
+        retryAt: undefined,
+        retryAttempt: undefined,
+        retryOf: undefined,
+      });
 
       // Without a key we still fill the template locally; it is the same email
       // everyone gets, which is exactly what the model is there to avoid.
@@ -122,6 +141,14 @@ export default function Page() {
           apiKey: settings.apiKey.trim(),
           transport: settings.transport,
           signal,
+          onRetry: ({ attempt, of, waitMs, reason }) =>
+            updateLead(lead.id, {
+              status: "waiting",
+              error: reason,
+              retryAt: Date.now() + waitMs,
+              retryAttempt: attempt,
+              retryOf: of,
+            }),
           input: {
             email: lead.email,
             name: lead.name,
@@ -141,15 +168,26 @@ export default function Page() {
           body: result.body,
           status: "ready",
           error: undefined,
+          retryAt: undefined,
+          retryAttempt: undefined,
+          retryOf: undefined,
         });
       } catch (error) {
         if (signal.aborted) {
-          updateLead(lead.id, { status: lead.body ? "ready" : "new" });
+          updateLead(lead.id, {
+            status: lead.body ? "ready" : "new",
+            retryAt: undefined,
+            retryAttempt: undefined,
+            retryOf: undefined,
+          });
           return;
         }
         updateLead(lead.id, {
           status: "error",
           error: error instanceof Error ? error.message : "Generation failed",
+          retryAt: undefined,
+          retryAttempt: undefined,
+          retryOf: undefined,
         });
       }
     },

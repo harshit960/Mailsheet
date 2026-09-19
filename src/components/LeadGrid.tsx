@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DataGrid,
   SelectColumn,
@@ -17,6 +17,7 @@ const STATUS: Record<LeadStatus, { label: string; color: string; pulse?: boolean
   new: { label: "Not written", color: "var(--color-ink-3)" },
   queued: { label: "Queued", color: "var(--color-ink-3)" },
   generating: { label: "Writing", color: "var(--color-accent)", pulse: true },
+  waiting: { label: "Waiting", color: "var(--color-danger)" },
   ready: { label: "Ready", color: "var(--color-ok)" },
   error: { label: "Error", color: "var(--color-danger)" },
   drafted: { label: "In Gmail", color: "var(--color-accent)" },
@@ -38,6 +39,28 @@ function CellEditor({ row, column, onRowChange, onClose }: RenderEditCellProps<L
 
 function Muted({ children }: { children: string }) {
   return <span className="text-ink-3">{children}</span>;
+}
+
+/** m:ss remaining, so a long pause reads as a wait and not as a hang. */
+function remaining(at: number, now: number): string {
+  const total = Math.round(Math.max(0, at - now) / 1000);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Owns its own clock. The grid memoises rows, so a re-render of the page never
+ * reaches this cell — and ticking here beats re-rendering every row each
+ * second just to move one number.
+ */
+function Countdown({ at }: { at: number }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [at]);
+
+  return <>{remaining(at, now)}</>;
 }
 
 interface LeadGridProps {
@@ -133,17 +156,40 @@ export function LeadGrid({
         resizable: false,
         renderCell: ({ row }) => {
           const status = STATUS[row.status];
+          const waiting = row.status === "waiting";
           return (
             <span
               className="flex items-center gap-1.5 truncate"
-              title={row.error || status.label}
+              title={
+                waiting
+                  ? `${row.error ?? "Request failed"} — retrying automatically`
+                  : row.error || status.label
+              }
             >
               <span
                 className={`dot ${status.pulse ? "animate-pulse" : ""}`}
                 style={{ background: status.color }}
               />
-              <span className={row.status === "error" ? "text-danger" : "text-ink-2"}>
-                {row.status === "error" ? row.error || "Error" : status.label}
+              <span
+                className={
+                  row.status === "error" || waiting ? "text-danger" : "text-ink-2"
+                }
+              >
+                {waiting ? (
+                  <>
+                    Retry {row.retryAttempt ?? 1}/{row.retryOf ?? 1}
+                    {row.retryAt === undefined ? null : (
+                      <>
+                        {" in "}
+                        <Countdown at={row.retryAt} />
+                      </>
+                    )}
+                  </>
+                ) : row.status === "error" ? (
+                  row.error || "Error"
+                ) : (
+                  status.label
+                )}
               </span>
             </span>
           );

@@ -50,6 +50,17 @@ it cannot be aimed at another host.
   format: `buildRequest` / `parseResponse` / `parseError`, registered in
   `PROVIDERS`. The prompt is built centrally in `prompt.ts` and shared across
   vendors — put prompt changes there, not in a provider.
+- **Retries** live in `generate()` (`src/lib/ai/index.ts`), not in the UI:
+  `RETRY_ATTEMPTS` tries five minutes apart, and only for failures
+  `isRetryableStatus` accepts (429/408/5xx). Never retry a 4xx like a rejected
+  key — it cannot succeed and the user waits a quarter of an hour to find out.
+  The wait is a `sleep` bound to the run's `AbortSignal`, so Stop cuts it
+  short; both are overridable per call so tests need not take minutes.
+- **The grid memoises rows**, so anything that must change on its own clock —
+  the retry countdown, say — needs a component that ticks itself
+  (`Countdown` in `LeadGrid.tsx`). Re-rendering the page will not reach a cell,
+  and re-rendering every row once a second to move one number is the wrong
+  trade anyway.
 - **`derive.ts` is heuristics, not truth.** Everything it guesses goes into an
   editable cell, and low-confidence names are underlined in the grid *and*
   flagged to the model so it greets neutrally rather than using a name like
