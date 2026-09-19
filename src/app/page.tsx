@@ -314,7 +314,7 @@ export default function Page() {
       <Header
         hasKey={hasKey}
         providerLabel={provider.label}
-        gmailEmail={gmailReady ? session?.email || "Gmail connected" : null}
+        gmailConnected={gmailReady}
         gmailBusy={gmailBusy}
         onOpenTemplate={() => setDialog("template")}
         onOpenSettings={() => setDialog("settings")}
@@ -375,7 +375,7 @@ export default function Page() {
               onDraft={() => void runDraft(activeLead)}
               hasKey={hasKey}
               gmailReady={gmailReady}
-              draftsHref={draftsUrl(session?.email ?? "")}
+              draftsHref={draftsUrl()}
             />
           </div>
         ) : null}

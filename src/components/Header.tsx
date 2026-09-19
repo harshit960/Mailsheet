@@ -6,7 +6,7 @@ import { FileTextIcon, GithubIcon, SlidersIcon } from "./icons";
 interface HeaderProps {
   hasKey: boolean;
   providerLabel: string;
-  gmailEmail: string | null;
+  gmailConnected: boolean;
   gmailBusy: boolean;
   onOpenTemplate: () => void;
   onOpenSettings: () => void;
@@ -17,7 +17,7 @@ interface HeaderProps {
 export function Header({
   hasKey,
   providerLabel,
-  gmailEmail,
+  gmailConnected,
   gmailBusy,
   onOpenTemplate,
   onOpenSettings,
@@ -68,15 +68,15 @@ export function Header({
 
         <span className="mx-1 h-4 w-px bg-line" aria-hidden />
 
-        {gmailEmail ? (
+        {gmailConnected ? (
           <button
             type="button"
-            className="chip max-w-[220px]"
+            className="chip"
             onClick={onDisconnectGmail}
-            title={`Connected as ${gmailEmail} — click to disconnect`}
+            title="Mailsheet cannot see which account this is — it asks for no identity permission. Click to disconnect."
           >
             <span className="dot" style={{ background: "var(--color-ok)" }} />
-            <span className="truncate">{gmailEmail}</span>
+            Gmail connected
           </button>
         ) : (
           <button

@@ -58,9 +58,12 @@ it cannot be aimed at another host.
   non-ASCII headers, base64 body wrapped at 76 columns, and header values
   stripped of newlines so a subject cannot inject a `Bcc:`. Test round-trips if
   you touch it.
-- **Gmail** uses the GIS implicit flow and asks for `gmail.compose` only. Do not
-  widen the scope — `gmail.send`, `gmail.modify` or `mail.google.com` would let
-  this app do far more than it needs, and it only ever creates drafts.
+- **Gmail** uses the GIS implicit flow and asks for `gmail.compose` and nothing
+  else. Do not widen it. `gmail.send`, `gmail.modify` or `mail.google.com`
+  would let this app do far more than it only ever needs (create a draft), and
+  an identity scope like `userinfo.email` buys nothing but a label in the
+  header while making every user hand over their profile. `GmailSession.email`
+  is therefore always `""`, and the UI must never imply it knows the account.
 
 ## Conventions
 

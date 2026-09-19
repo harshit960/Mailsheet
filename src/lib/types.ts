@@ -60,5 +60,10 @@ export interface GmailSession {
   accessToken: string;
   /** epoch ms */
   expiresAt: number;
+  /**
+   * Always empty: the app asks for no identity scope, so it cannot read which
+   * account authorised it. Kept so a stored session from an older build still
+   * parses.
+   */
   email: string;
 }
