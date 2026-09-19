@@ -1,10 +1,12 @@
 import { buildRawMessage } from "./mime";
 import type { GmailSession } from "./types";
 
-export const GMAIL_SCOPES = [
-  "https://www.googleapis.com/auth/gmail.compose",
-  "https://www.googleapis.com/auth/userinfo.email",
-].join(" ");
+/**
+ * One scope, and the narrowest Gmail offers: enough to create a draft, not
+ * enough to read a message. Deliberately no identity scope — knowing which
+ * account is connected is not worth asking every user for their profile.
+ */
+export const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.compose";
 
 const GSI_SRC = "https://accounts.google.com/gsi/client";
 
@@ -121,23 +123,12 @@ export async function connectGmail(clientId: string): Promise<GmailSession> {
     );
   }
 
-  const accessToken = token.access_token;
-  const expiresAt = Date.now() + (token.expires_in ?? 3600) * 1000;
-
-  return { accessToken, expiresAt, email: await fetchEmail(accessToken) };
-}
-
-async function fetchEmail(accessToken: string): Promise<string> {
-  try {
-    const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok) return "";
-    const data = (await response.json()) as { email?: string };
-    return data.email ?? "";
-  } catch {
-    return "";
-  }
+  return {
+    accessToken: token.access_token,
+    expiresAt: Date.now() + (token.expires_in ?? 3600) * 1000,
+    // Reading the address back would mean an identity scope, so we do not ask.
+    email: "",
+  };
 }
 
 export function disconnectGmail(session: GmailSession | null): void {
@@ -202,9 +193,10 @@ export async function createDraft(
   return { draftId: data.id };
 }
 
-export function draftsUrl(email: string): string {
-  const base = "https://mail.google.com/mail/";
-  return email
-    ? `${base}u/?authuser=${encodeURIComponent(email)}#drafts`
-    : `${base}u/0/#drafts`;
+/**
+ * Without an identity scope we cannot know which account authorised us, so we
+ * link to Gmail's default mailbox rather than guessing an account index.
+ */
+export function draftsUrl(): string {
+  return "https://mail.google.com/mail/#drafts";
 }

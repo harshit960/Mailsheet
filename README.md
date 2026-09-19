@@ -79,10 +79,15 @@ cp .env.example .env.local   # then fill in NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 It is public by design — an OAuth client ID is not a secret.
 
-Mailsheet requests **`gmail.compose` only**: enough to create drafts, not
-enough to read your mail. It also asks for `userinfo.email` so it can show
-which account is connected. The access token expires in about an hour, there is
-no refresh token, and it is revoked when you disconnect.
+Mailsheet requests exactly one scope, **`gmail.compose`** — enough to create a
+draft, not enough to read a message. It asks for no identity scope at all, so
+it cannot see your name, profile or even which account authorised it; the
+header just says "Gmail connected". The access token expires in about an hour,
+there is no refresh token, and it is revoked when you disconnect.
+
+If Google's consent screen offers more than that one permission, the OAuth
+client is carrying scopes from its Google Cloud project's consent screen —
+give Mailsheet its own project rather than reusing one from another app.
 
 ## Privacy, precisely
 
