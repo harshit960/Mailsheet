@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { checkDraft } from "@/lib/quality";
 import type { Lead } from "@/lib/types";
 import { CloseIcon, CopyIcon, ExternalIcon, MailIcon, SparkIcon } from "./icons";
 
@@ -26,6 +27,10 @@ export function Inspector({
   draftsHref,
 }: InspectorProps) {
   const [copied, setCopied] = useState(false);
+  const issues = useMemo(
+    () => (lead.body.trim() ? checkDraft(lead.subject, lead.body) : []),
+    [lead.subject, lead.body],
+  );
   const busy =
     lead.status === "generating" ||
     lead.status === "queued" ||
@@ -83,6 +88,20 @@ export function Inspector({
           />
         </div>
 
+        <div>
+          <label className="label" htmlFor="lead-jd">
+            Job description <span className="text-ink-3">(optional)</span>
+          </label>
+          <textarea
+            id="lead-jd"
+            className="field leading-relaxed"
+            rows={3}
+            placeholder="Paste the posting. The model draws real specifics from it — nothing here is sent anywhere until you generate."
+            value={lead.jobDescription}
+            onChange={(event) => onChange({ jobDescription: event.target.value })}
+          />
+        </div>
+
         <div className="border-t border-line pt-4">
           <label className="label" htmlFor="lead-subject">
             Subject
@@ -116,6 +135,39 @@ export function Inspector({
               : "Edits here are saved to this row."}
           </p>
         </div>
+
+        {issues.length > 0 ? (
+          <ul className="space-y-1.5">
+            {issues.map((issue, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-[12px] leading-relaxed"
+                style={{
+                  color:
+                    issue.level === "error"
+                      ? "var(--color-danger)"
+                      : "var(--color-ink-2)",
+                }}
+              >
+                <span
+                  className="dot mt-1.5 flex-none"
+                  style={{
+                    background:
+                      issue.level === "error"
+                        ? "var(--color-danger)"
+                        : "var(--color-ink-3)",
+                  }}
+                />
+                {issue.message}
+              </li>
+            ))}
+          </ul>
+        ) : lead.body.trim() ? (
+          <p className="flex items-center gap-2 text-[12px] text-ok">
+            <span className="dot flex-none" style={{ background: "var(--color-ok)" }} />
+            No issues flagged.
+          </p>
+        ) : null}
 
         {lead.status === "error" && lead.error ? (
           <p className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12px] leading-relaxed text-danger">

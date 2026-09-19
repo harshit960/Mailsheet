@@ -32,6 +32,25 @@ neither the key nor the emails pass through the server that served the page.
 Without an API key the Write action still fills your template from the
 placeholder values, so the app is usable offline; it just is not personalised.
 
+### Template library
+
+Open **Template → Browse library** for a dozen proven starting points — cold
+applications, referral asks, coffee-chat requests, follow-up nudges, the
+break-up email, post-interview notes. Every template is written from scratch
+for this app (cold-email *wording* is copyrighted; the *patterns* are not), and
+each credits where its pattern is discussed as further reading. **Use as-is**
+drops one into your working template; **Adapt to me** rewrites it in your voice
+first, using your "About you" and tone.
+
+### Per-row job description, quality checks, duplicate guard
+
+Each row has an optional **Job description** field — paste the posting and the
+model draws real specifics from it. Below the body, **quality checks** run
+client-side (no model, no cost): unfilled placeholders, a missing call to
+action, over-length, and spam-filter phrasing. And before creating a batch of
+Gmail drafts, Mailsheet **warns once** if an address repeats or one company is
+targeted by several rows.
+
 **On rate limits**, a row waits and tries again rather than failing: up to
 three retries, five minutes apart, with the remaining time shown in the Status
 column. Only transient failures qualify — a 429, a timeout, or a 5xx from the
@@ -47,8 +66,9 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-Then open Settings, paste a [Gemini API key](https://aistudio.google.com/apikey),
-and you can generate straight away. Gmail drafting needs one more step, below.
+Then open Settings, choose a provider — **Gemini**, **OpenAI** or
+**Anthropic** — paste that provider's API key, and you can generate straight
+away. Gmail drafting needs one more step, below.
 
 Other scripts:
 

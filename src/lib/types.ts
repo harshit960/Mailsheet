@@ -22,6 +22,8 @@ export interface Lead {
   role: string;
   /** Anything extra worth mentioning to this one person. */
   notes: string;
+  /** The pasted job posting for this row, fed to the model as context. */
+  jobDescription: string;
   subject: string;
   body: string;
   status: LeadStatus;
