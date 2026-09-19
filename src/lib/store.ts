@@ -32,6 +32,7 @@ export function makeLead(email = "", overrides: Partial<Lead> = {}): Lead {
     company: deriveCompany(trimmed),
     role: "",
     notes: "",
+    jobDescription: "",
     subject: "",
     body: "",
     status: "new",

@@ -174,23 +174,70 @@ export async function createDraft(
     throw new GmailError("Could not reach Gmail");
   }
 
-  if (response.status === 401 || response.status === 403) {
-    throw new GmailError("Gmail rejected the session — reconnect to continue", true);
-  }
+  const data = (await response.json().catch(() => ({}))) as
+    | { id?: string }
+    | GoogleErrorBody;
 
-  const data = (await response.json().catch(() => ({}))) as {
-    id?: string;
-    error?: { message?: string };
+  if (!response.ok) throw gmailFailure(response.status, data as GoogleErrorBody);
+
+  const draftId = (data as { id?: string }).id;
+  if (!draftId) throw new GmailError("Gmail did not return a draft id");
+
+  return { draftId };
+}
+
+interface GoogleErrorBody {
+  error?: {
+    message?: string;
+    status?: string;
+    details?: { reason?: string }[];
   };
+}
 
-  if (!response.ok) {
-    throw new GmailError(
-      data.error?.message || `Gmail draft failed (HTTP ${response.status})`,
-    );
+/**
+ * Google answers several unrelated problems with a flat 403, and they need
+ * opposite responses from the user — so tell them apart rather than telling
+ * everyone to reconnect. Only a genuinely bad token is worth re-authorising
+ * for; a missing scope or a disabled API survives any number of reconnects.
+ */
+function gmailFailure(status: number, data: GoogleErrorBody): GmailError {
+  const message = data.error?.message ?? "";
+  const reason = data.error?.details?.find((detail) => detail.reason)?.reason ?? "";
+
+  if (status === 401) {
+    return new GmailError("Gmail session expired — reconnect to continue", true);
   }
-  if (!data.id) throw new GmailError("Gmail did not return a draft id");
 
-  return { draftId: data.id };
+  if (status === 403) {
+    if (
+      reason === "ACCESS_TOKEN_SCOPE_INSUFFICIENT" ||
+      /insufficient authentication scopes/i.test(message)
+    ) {
+      return new GmailError(
+        "This Google account signed in but never granted Gmail access. The OAuth client is missing the gmail.compose scope on its consent screen — reconnecting will not fix it.",
+      );
+    }
+    if (
+      reason === "SERVICE_DISABLED" ||
+      /has not been used in project|is disabled/i.test(message)
+    ) {
+      return new GmailError(
+        "The Gmail API is not enabled on this OAuth client's Google Cloud project. Enable it in the console, then reconnect.",
+      );
+    }
+    if (/rateLimitExceeded/i.test(reason)) {
+      return new GmailError(
+        "Gmail is rate limiting this account. Lower the concurrency in Settings or retry shortly.",
+      );
+    }
+    return new GmailError(message || "Gmail refused the request (HTTP 403)");
+  }
+
+  if (status === 429) {
+    return new GmailError("Gmail is rate limiting this account — retry shortly.");
+  }
+
+  return new GmailError(message || `Gmail draft failed (HTTP ${status})`);
 }
 
 /**

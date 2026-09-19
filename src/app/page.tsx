@@ -10,6 +10,7 @@ import {
 } from "react";
 import { generate, getProvider } from "@/lib/ai";
 import { downloadCsv, toCsv } from "@/lib/csv";
+import { duplicateWarning, findDuplicates } from "@/lib/duplicates";
 import { isEmail } from "@/lib/derive";
 import {
   connectGmail,
@@ -31,6 +32,7 @@ import { LeadGrid } from "@/components/LeadGrid";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { TemplateDialog } from "@/components/TemplateDialog";
 import { Toolbar } from "@/components/Toolbar";
+import { TemplateLibraryDialog } from "@/components/TemplateLibraryDialog";
 
 type Toast = { text: string; tone: "info" | "error" } | null;
 
@@ -47,7 +49,11 @@ export default function Page() {
 
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<"settings" | "template" | "import" | null>(null);
+  const [dialog, setDialog] = useState<
+    "settings" | "template" | "import" | "library" | null
+  >(null);
+  // Remembers a duplicate warning the user has already chosen to override.
+  const [dupAck, setDupAck] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
   const [running, setRunning] = useState<"write" | "draft" | null>(null);
   const [gmailBusy, setGmailBusy] = useState(false);
@@ -156,6 +162,7 @@ export default function Page() {
             company: lead.company,
             role: lead.role.trim() || template.role,
             notes: lead.notes,
+            jobDescription: lead.jobDescription,
             tone: template.tone,
             senderName: template.senderName,
             senderBackground: template.senderBackground,
@@ -238,6 +245,19 @@ export default function Page() {
   async function runDraft(only?: Lead) {
     const targets = only ? [only] : draftable;
     if (targets.length === 0 || running) return;
+
+    // Warn once before creating many drafts that repeat an address or pile onto
+    // one company. The second click goes through.
+    if (!only && !dupAck) {
+      const warning = duplicateWarning(findDuplicates(targets));
+      if (warning) {
+        setDupAck(true);
+        say(`Heads up — ${warning}. Click “Create drafts” again to proceed.`, "error");
+        return;
+      }
+    }
+    setDupAck(false);
+
     if (!session || isExpired(session)) {
       setSession(null);
       say("Gmail session expired — connect again.", "error");
@@ -439,7 +459,16 @@ export default function Page() {
       ) : null}
 
       <SettingsDialog open={dialog === "settings"} onClose={() => setDialog(null)} />
-      <TemplateDialog open={dialog === "template"} onClose={() => setDialog(null)} />
+      <TemplateDialog
+        open={dialog === "template"}
+        onClose={() => setDialog(null)}
+        onBrowseLibrary={() => setDialog("library")}
+      />
+      <TemplateLibraryDialog
+        open={dialog === "library"}
+        onClose={() => setDialog(null)}
+        onApplied={(message) => say(message)}
+      />
       <ImportDialog
         open={dialog === "import"}
         onClose={() => setDialog(null)}

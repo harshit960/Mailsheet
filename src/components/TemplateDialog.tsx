@@ -5,8 +5,17 @@ import { PLACEHOLDERS } from "@/lib/template";
 import { TONES } from "@/lib/types";
 import { useApp } from "@/lib/store";
 import { Dialog } from "./Dialog";
+import { FileTextIcon } from "./icons";
 
-export function TemplateDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function TemplateDialog({
+  open,
+  onClose,
+  onBrowseLibrary,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onBrowseLibrary: () => void;
+}) {
   const template = useApp((state) => state.template);
   const setTemplate = useApp((state) => state.setTemplate);
 
@@ -45,6 +54,20 @@ export function TemplateDialog({ open, onClose }: { open: boolean; onClose: () =
       }
     >
       <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-sunken px-3 py-2.5">
+          <p className="text-[12px] leading-relaxed text-ink-2">
+            Not sure where to start? Load a proven pattern and tweak it.
+          </p>
+          <button
+            type="button"
+            className="btn btn-sm flex-none"
+            onClick={onBrowseLibrary}
+          >
+            <FileTextIcon />
+            Browse library
+          </button>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="sender-name">

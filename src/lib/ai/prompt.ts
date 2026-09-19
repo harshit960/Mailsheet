@@ -1,4 +1,4 @@
-import type { GenerationInput, PromptParts } from "./types";
+import type { AdaptInput, GenerationInput, PromptParts } from "./types";
 
 const SYSTEM = `You personalise cold outreach emails that a job seeker sends to recruiters.
 
@@ -38,6 +38,12 @@ export function buildPrompt(input: GenerationInput): PromptParts {
   user += line("Role being targeted", input.role);
   user += line("Notes about this recipient", input.notes);
 
+  if (input.jobDescription.trim()) {
+    user += "\nJOB DESCRIPTION (the actual posting — draw specifics from here, do not quote it verbatim)\n";
+    user += input.jobDescription.trim();
+    user += "\n";
+  }
+
   user += "\nSENDER\n";
   user += line("Name", input.senderName);
   user += line("Background the email may draw on", input.senderBackground);
@@ -50,4 +56,30 @@ export function buildPrompt(input: GenerationInput): PromptParts {
   user += input.templateBody.trim();
 
   return { system: SYSTEM, user };
+}
+
+
+const ADAPT_SYSTEM = `You rewrite a proven cold-email template so it sounds like a specific job seeker wrote it.
+
+You are given a template that captures a pattern, plus what the sender tells you about themselves. Rewrite the template in the sender's voice at the given tone.
+
+Rules:
+- Keep the template's structure, arc and intent. Keep it roughly the same length. This is a re-voicing, not a new email.
+- Keep the {{name}}, {{company}}, {{role}} and {{sender}} placeholders exactly as they are — they get filled in per recipient later. Do not resolve them, and do not invent new placeholders.
+- Weave in the sender's background only where it fits naturally. Never invent facts about the sender beyond what they tell you; if they gave you little, keep it general rather than making things up.
+- Plain text only. No markdown, no bullets, no subject line inside the body.
+- Subject line under 70 characters.
+
+Return JSON with exactly two string fields: "subject" and "body".`;
+
+export function buildAdaptPrompt(input: AdaptInput): PromptParts {
+  let user = `TEMPLATE: ${input.templateName}\n\n`;
+  user += "TEMPLATE SUBJECT\n" + input.templateSubject.trim() + "\n\n";
+  user += "TEMPLATE BODY\n" + input.templateBody.trim() + "\n\n";
+  user += "SENDER\n";
+  user += line("Name", input.senderName);
+  user += line("Role they are targeting", input.role);
+  user += line("Background they may draw on", input.senderBackground);
+  user += `\nTONE\n${input.tone}\n`;
+  return { system: ADAPT_SYSTEM, user };
 }

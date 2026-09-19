@@ -61,6 +61,23 @@ it cannot be aimed at another host.
   (`Countdown` in `LeadGrid.tsx`). Re-rendering the page will not reach a cell,
   and re-rendering every row once a second to move one number is the wrong
   trade anyway.
+- **The template library** (`src/lib/templates/library.ts`) is static, original
+  prose — never copied from anyone's site. Cold-email wording is copyrighted;
+  patterns are not. Each entry credits its pattern as further reading, not as a
+  source of text. "Adapt to me" reuses the provider seam via `adaptTemplate` +
+  `buildAdaptPrompt`; the adapt prompt deliberately KEEPS `{{placeholders}}` so
+  the result is still a per-recipient template.
+- **Quality checks** (`src/lib/quality.ts`) and **duplicate detection**
+  (`src/lib/duplicates.ts`) are pure, no-network functions — unit-tested,
+  advisory only, never blocking. `duplicates.ts` matches free-mail on the
+  registrable label from `derive.ts`, not by substring (or "acme.com" reads as
+  iCloud via "...me.").
+- **Adding a provider** stays a one-object change (`buildRequest` /
+  `parseResponse` / `parseError`) registered in `PROVIDERS`. Browser-direct
+  Anthropic needs the `anthropic-dangerous-direct-browser-access` header or
+  CORS blocks it; OpenAI may block direct browser calls and fall through to the
+  relay automatically. `generate` and `adaptTemplate` both go through
+  `runWithRetry`, so retries and the direct→relay fallback behave identically.
 - **`derive.ts` is heuristics, not truth.** Everything it guesses goes into an
   editable cell, and low-confidence names are underlined in the grid *and*
   flagged to the model so it greets neutrally rather than using a name like

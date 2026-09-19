@@ -1,8 +1,10 @@
+import { anthropic } from "./anthropic";
 import { gemini } from "./gemini";
-import { buildPrompt } from "./prompt";
-import type { GenerationInput, GenerationResult, Provider } from "./types";
+import { openai } from "./openai";
+import { buildAdaptPrompt, buildPrompt } from "./prompt";
+import type { AdaptInput, GenerationInput, GenerationResult, PromptParts, Provider } from "./types";
 
-export const PROVIDERS: readonly Provider[] = [gemini];
+export const PROVIDERS: readonly Provider[] = [gemini, openai, anthropic];
 
 export function getProvider(id: string): Provider {
   return PROVIDERS.find((p) => p.id === id) ?? PROVIDERS[0];
@@ -98,8 +100,48 @@ export async function generate({
   retryAttempts = RETRY_ATTEMPTS,
   retryDelayMs = RETRY_DELAY_MS,
 }: GenerateArgs): Promise<GenerationResult> {
+  return runWithRetry({
+    providerId,
+    model,
+    apiKey,
+    transport,
+    prompt: buildPrompt(input),
+    signal,
+    onRetry,
+    retryAttempts,
+    retryDelayMs,
+  });
+}
+
+interface RunArgs {
+  providerId: string;
+  model: string;
+  apiKey: string;
+  transport: "direct" | "relay";
+  prompt: PromptParts;
+  signal?: AbortSignal;
+  onRetry?: (notice: RetryNotice) => void;
+  retryAttempts?: number;
+  retryDelayMs?: number;
+}
+
+/**
+ * Transport + retry, given a ready prompt. Both personalisation and template
+ * adaptation go through here, so retries, the direct→relay fallback and
+ * cancellation behave identically for each.
+ */
+export async function runWithRetry({
+  providerId,
+  model,
+  apiKey,
+  transport,
+  prompt,
+  signal,
+  onRetry,
+  retryAttempts = RETRY_ATTEMPTS,
+  retryDelayMs = RETRY_DELAY_MS,
+}: RunArgs): Promise<GenerationResult> {
   const provider = getProvider(providerId);
-  const prompt = buildPrompt(input);
   const resolvedModel = model.trim() || provider.defaultModel;
 
   const attempt = () => attemptOnce(provider, apiKey, resolvedModel, prompt, transport, signal);
@@ -124,6 +166,37 @@ export async function generate({
       await sleep(retryDelayMs, signal);
     }
   }
+}
+
+interface AdaptArgs {
+  providerId: string;
+  model: string;
+  apiKey: string;
+  transport: "direct" | "relay";
+  input: AdaptInput;
+  signal?: AbortSignal;
+  onRetry?: (notice: RetryNotice) => void;
+}
+
+/** Rewrite a library template in the sender's own voice. */
+export async function adaptTemplate({
+  providerId,
+  model,
+  apiKey,
+  transport,
+  input,
+  signal,
+  onRetry,
+}: AdaptArgs): Promise<GenerationResult> {
+  return runWithRetry({
+    providerId,
+    model,
+    apiKey,
+    transport,
+    prompt: buildAdaptPrompt(input),
+    signal,
+    onRetry,
+  });
 }
 
 async function attemptOnce(
@@ -224,4 +297,4 @@ async function callRelay(
   return provider.parseResponse(payload.payload);
 }
 
-export type { GenerationInput, GenerationResult, Provider };
+export type { AdaptInput, GenerationInput, GenerationResult, Provider };

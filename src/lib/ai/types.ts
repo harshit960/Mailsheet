@@ -18,11 +18,24 @@ export interface GenerationInput {
   company: string;
   role: string;
   notes: string;
+  /** The actual job posting text, when the user pasted one for this row. */
+  jobDescription: string;
   tone: Tone;
   senderName: string;
   senderBackground: string;
   templateSubject: string;
   templateBody: string;
+}
+
+/** Input for rewriting a library template in the sender's voice. */
+export interface AdaptInput {
+  templateName: string;
+  templateSubject: string;
+  templateBody: string;
+  tone: Tone;
+  senderName: string;
+  senderBackground: string;
+  role: string;
 }
 
 export interface ProviderRequest {
